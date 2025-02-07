@@ -2,23 +2,28 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField]
-    private CharacterController characterController;
+    [SerializeField] private CharacterController characterController;
 
+    [Header("Movement Settings")]
     public float walkSpeed = 5f;
     public float runSpeed = 8f;
-    public float acceleration = 10f;  // Speeding up rate
-    public float deceleration = 15f;  // Slowing down rate
-    public float airControl = 0.5f;   // How much control you have in the air
-    public float gravity = -9.8f;     // Gravity force
-    public float jumpHeight = 2f;     // How high the player can jump
+    public float acceleration = 10f;
+    public float deceleration = 15f;
+    public float airControl = 0.5f;
+
+    [Header("Jump & Gravity Settings")]
+    public float gravity = -9.8f;
+    public float jumpHeight = 2f;
+
+    [Header("Ground Check Settings")]
+    public Transform groundCheck; 
+    public float groundCheckRadius = 0.3f;
+    public LayerMask groundLayer;
 
     private Vector3 velocity;
     private Vector3 moveDirection;
     private float currentSpeed;
     private float targetSpeed;
-
-    private bool isRunning;
     private bool isGrounded;
 
     void Start()
@@ -29,28 +34,26 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
+        HandleGroundCheck();
         HandleMovement();
         ApplyGravity();
         HandleJumping();
         characterController.Move((moveDirection * currentSpeed + velocity) * Time.deltaTime);
     }
 
+    private void HandleGroundCheck()
+    {
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundCheckRadius, groundLayer);
+    }
+
     private void HandleMovement()
     {
-        // Check if grounded
-        isGrounded = characterController.isGrounded;
-
-        // Get input
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
 
-        // Determine target speed
-        targetSpeed = (Input.GetKey(KeyCode.LeftShift)) ? runSpeed : walkSpeed;
-
-        // Calculate desired movement direction
+        targetSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
         Vector3 desiredDirection = transform.right * x + transform.forward * z;
 
-        // Gradually adjust currentSpeed for smooth acceleration/deceleration
         if (desiredDirection.magnitude > 0.1f)
         {
             currentSpeed = Mathf.Lerp(currentSpeed, targetSpeed, acceleration * Time.deltaTime);
@@ -60,14 +63,12 @@ public class PlayerMovement : MonoBehaviour
             currentSpeed = Mathf.Lerp(currentSpeed, 0, deceleration * Time.deltaTime);
         }
 
-        // Apply movement
         if (isGrounded)
         {
             moveDirection = desiredDirection.normalized;
         }
         else
         {
-            // Allow some air control
             moveDirection = Vector3.Lerp(moveDirection, desiredDirection.normalized, airControl * Time.deltaTime);
         }
     }
@@ -76,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = -2f; // Keeps the character grounded
+            velocity.y = -2f; // Ensures the player sticks to the ground when landing
         }
         else
         {
