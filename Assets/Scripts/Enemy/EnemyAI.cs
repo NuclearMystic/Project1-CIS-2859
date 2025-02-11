@@ -155,12 +155,6 @@ public class EnemyAI : MonoBehaviour
         return navHit.position;
     }
 
-    public void ApplyDamage(float damage)
-    {
-        Debug.Log("Enemy took " + damage + " damage!");
-        // do something when attack or dead
-    }
-
     public void PlayFootstepSFX()
     {
         footstepAudioSource.Play();

@@ -1,13 +1,20 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIController : MonoBehaviour
 {
     public static UIController Instance { get; private set; }
 
+    [SerializeField]
+    private GameObject pauseMenu;
+
     private Animator hitEffectAnimator;
     private static readonly int HitTrigger = Animator.StringToHash("Hit");
 
     public AudioSource hitSFX;
+    public AudioSource recoverSFX;
+
+    public Slider healthSlider;
 
     private void Awake()
     {
@@ -27,6 +34,14 @@ public class UIController : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (Input.GetButtonDown("Menu"))
+        {
+            PauseGame();
+        }
+    }
+
     public void PlayerHitEffect()
     {
         if (hitEffectAnimator != null)
@@ -42,5 +57,16 @@ public class UIController : MonoBehaviour
     public void PlayHitSFX()
     {
         hitSFX.Play();
+    }
+
+    public void PauseGame()
+    {
+        if (pauseMenu.activeSelf)
+        {
+            pauseMenu.SetActive(false);
+        }else
+        {
+            pauseMenu.SetActive(true);
+        }
     }
 }

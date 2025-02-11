@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -16,7 +17,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpHeight = 2f;
 
     [Header("Ground Check Settings")]
-    public Transform groundCheck; 
+    public Transform groundCheck;
     public float groundCheckRadius = 0.3f;
     public LayerMask groundLayer;
 
@@ -26,10 +27,20 @@ public class PlayerMovement : MonoBehaviour
     private float targetSpeed;
     private bool isGrounded;
 
+    // Buff tracking
+    private float originalWalkSpeed;
+    private float originalRunSpeed;
+    private float originalJumpHeight;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         currentSpeed = 0f;
+
+        // original values pre buffs
+        originalWalkSpeed = walkSpeed;
+        originalRunSpeed = runSpeed;
+        originalJumpHeight = jumpHeight;
     }
 
     void Update()
@@ -77,7 +88,7 @@ public class PlayerMovement : MonoBehaviour
     {
         if (isGrounded && velocity.y < 0)
         {
-            velocity.y = -2f; // Ensures the player sticks to the ground when landing
+            velocity.y = -2f; 
         }
         else
         {
@@ -91,5 +102,33 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
+    }
+
+    public void ApplySpeedBoost(float boostAmount, float duration)
+    {
+        StopCoroutine("SpeedBoostCoroutine");
+        StartCoroutine(SpeedBoostCoroutine(boostAmount, duration));
+    }
+
+    private IEnumerator SpeedBoostCoroutine(float boostAmount, float duration)
+    {
+        walkSpeed += boostAmount;
+        runSpeed += boostAmount;
+        yield return new WaitForSeconds(duration);
+        walkSpeed = originalWalkSpeed;
+        runSpeed = originalRunSpeed;
+    }
+
+    public void ApplyJumpBoost(float boostAmount, float duration)
+    {
+        StopCoroutine("JumpBoostCoroutine");
+        StartCoroutine(JumpBoostCoroutine(boostAmount, duration));
+    }
+
+    private IEnumerator JumpBoostCoroutine(float boostAmount, float duration)
+    {
+        jumpHeight += boostAmount;
+        yield return new WaitForSeconds(duration);
+        jumpHeight = originalJumpHeight;
     }
 }
