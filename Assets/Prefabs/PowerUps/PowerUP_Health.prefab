@@ -258,12 +258,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   itemType: 0
-  effectAmount: 5
-  effectDuration: 5
-  pickupSFX: {fileID: 0}
-  floatSpeed: 2
+  effectAmount: 2
+  effectDuration: 1
+  floatSpeed: 4
   floatHeight: 0.2
-  rotationSpeed: 50
+  rotationSpeed: 100
+  despawnTimer: 5
 --- !u!4 &3414834857441721209 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: dfd749d58efefda4b8f06c26d8a090c2,

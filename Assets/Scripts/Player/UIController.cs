@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UIController : MonoBehaviour
 {
@@ -13,8 +14,14 @@ public class UIController : MonoBehaviour
 
     public AudioSource hitSFX;
     public AudioSource recoverSFX;
+    public AudioSource CountDownSFX;
+    public AudioSource CountDownGoSFX;
 
     public Slider healthSlider;
+    public TMP_Text scoreText;
+    public TMP_Text roundText;
+
+    private float totalScore = 0f;
 
     private void Awake()
     {
@@ -25,9 +32,8 @@ public class UIController : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
 
-        hitEffectAnimator = GetComponent<Animator>(); 
+        hitEffectAnimator = GetComponent<Animator>();
         if (hitEffectAnimator == null)
         {
             Debug.LogError("UIController: No Animator found on this GameObject!");
@@ -59,6 +65,16 @@ public class UIController : MonoBehaviour
         hitSFX.Play();
     }
 
+    public void PlayCountDownSFX()
+    {
+        CountDownSFX.Play();
+    }
+
+    public void PlayCountDownGoSFX()
+    {
+        CountDownGoSFX.Play();
+    }
+
     public void PauseGame()
     {
         if (pauseMenu.activeSelf)
@@ -68,5 +84,17 @@ public class UIController : MonoBehaviour
         {
             pauseMenu.SetActive(true);
         }
+    }
+
+    public void UpdateRoundNumber(float number)
+    {
+        roundText.text = number.ToString();
+
+    }
+
+    public void UpdateScore(float score)
+    {
+        totalScore += score;
+        scoreText.text = totalScore.ToString();
     }
 }

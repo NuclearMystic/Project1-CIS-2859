@@ -4,6 +4,13 @@ public class PlayerHealth : MonoBehaviour
 {
     public float health = 25f;
 
+    private void Update()
+    {
+        // cap pc health
+        if(health > 25) health = 25;
+        if(health < 0) health = 0;
+    }
+
     public void TakeDamage(float damage)
     {
         health -= damage;

@@ -7,6 +7,9 @@ TagManager:
   - Head
   - Body
   - Legs
+  - Center
+  - Projectile
+  - SpawnedObject
   layers:
   - Default
   - TransparentFX

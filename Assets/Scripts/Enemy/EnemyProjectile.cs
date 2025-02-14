@@ -51,6 +51,16 @@ public class EnemyProjectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("Projectile"))
+        {
+            return; 
+        }
+
+        if (other.CompareTag("SpawnedObject"))
+        {
+            other.GetComponent<ArenaShape>().ApplyDamage((int)damage);
+        }
+
         Debug.Log("Projectile hit: " + other.name);
 
         if (other.CompareTag("Player"))

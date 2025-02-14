@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PickupItem : MonoBehaviour
@@ -18,10 +19,12 @@ public class PickupItem : MonoBehaviour
     public float floatSpeed = 2f;
     public float floatHeight = 0.2f;
     public float rotationSpeed = 50f;
+    public float despawnTimer = 5f;
 
     void Start()
     {
         startPosition = transform.position;
+        StartCoroutine(StartDespawnTimer());
     }
 
     void Update()
@@ -74,5 +77,11 @@ public class PickupItem : MonoBehaviour
                 }
                 break;
         }
+    }
+
+    IEnumerator StartDespawnTimer()
+    {
+        yield return new WaitForSeconds(despawnTimer);
+        Destroy(gameObject);
     }
 }

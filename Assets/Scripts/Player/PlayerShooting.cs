@@ -64,10 +64,16 @@ public class PlayerShooting : MonoBehaviour
 
     private void HandleEnemyHit(RaycastHit hit)
     {
-        Enemy enemy = hit.collider.GetComponent<Enemy>();
+        EnemyController enemy = hit.collider.GetComponent<EnemyController>();
         if (enemy != null)
         {
             enemy.DamageHealth(damage);
+        }
+
+        ArenaShape shape = hit.collider.GetComponent<ArenaShape>();
+        if (shape != null)
+        {
+            shape.ApplyDamage((int)damage); // Apply damage to the shape
         }
     }
 

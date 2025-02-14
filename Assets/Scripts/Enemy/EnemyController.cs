@@ -1,33 +1,42 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyAI : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
+    public event System.Action OnDeath;
+
+    [Header("Enemy Stats")]
+    [SerializeField] private float enemyHealth = 25f;
+    [SerializeField] private GameObject healthPickup;
+
     [Header("AI Components")]
     private NavMeshAgent agent;
     private Animator animator;
 
     [Header("Player Detection")]
-    public Transform player;
-    public float sightRange = 15f;
-    public float shootRange = 10f;
-    public LayerMask playerLayer;
+    private Transform player;
+    [SerializeField] private float sightRange = 75f;
+    [SerializeField] private float shootRange = 25f;
+    [SerializeField] private LayerMask playerLayer;
 
     [Header("Wandering Settings")]
-    public float wanderRadius = 20f;
-    public float wanderDelay = 2f;
+    [SerializeField] private float wanderRadius = 20f;
+    [SerializeField] private float wanderDelay = 2f;
     private float wanderTimer;
 
     [Header("Shooting Settings")]
-    public GameObject bulletPrefab;
-    public Transform firePoint;
-    public float shootCooldown = 1f;
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private float shootCooldown = 1f;
     private float shootTimer;
     private bool canSeePlayer = false;
 
     [Header("Audio Settings")]
-    public AudioSource footstepAudioSource;
-    public AudioSource projectileAudioSource;
+    [SerializeField] private AudioSource footstepAudioSource;
+    [SerializeField] private AudioSource projectileAudioSource;
+
+    private bool isDead = false;
 
     private void Start()
     {
@@ -46,14 +55,13 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.LogWarning("Player not found in scene!");
         }
-
-        StartWandering();
     }
 
     private void Update()
     {
-        shootTimer -= Time.deltaTime;
+        if (isDead) return;
 
+        shootTimer -= Time.deltaTime;
         canSeePlayer = CheckPlayerVisibility();
 
         if (canSeePlayer)
@@ -65,8 +73,10 @@ public class EnemyAI : MonoBehaviour
             Wander();
         }
 
-        animator.SetFloat("Speed", agent.velocity.magnitude);
+        float speed = agent.velocity.magnitude;
+        animator.SetFloat("Speed", speed);
     }
+
 
     private bool CheckPlayerVisibility()
     {
@@ -76,8 +86,7 @@ public class EnemyAI : MonoBehaviour
 
         if (distanceToPlayer <= sightRange)
         {
-            RaycastHit hit;
-            if (Physics.Linecast(transform.position, player.position, out hit, playerLayer))
+            if (Physics.Linecast(transform.position, player.position, out RaycastHit hit, playerLayer))
             {
                 return hit.collider.CompareTag("Player");
             }
@@ -87,8 +96,8 @@ public class EnemyAI : MonoBehaviour
 
     private void ChasePlayer()
     {
-        if (player == null) return;
-
+        if (!player) return;
+        agent.isStopped = false; 
         agent.SetDestination(player.position);
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
@@ -120,17 +129,15 @@ public class EnemyAI : MonoBehaviour
 
     private void Attack()
     {
-        // stop before shooting
         agent.isStopped = true;
-        // then trigger shot
         animator.SetTrigger("Shoot");
-        // start attack cooldown
         shootTimer = shootCooldown;
     }
 
-    // call from animation event frame
     public void OnShootEvent()
     {
+        if (isDead) return;
+
         if (bulletPrefab != null && firePoint != null)
         {
             GameObject projectile = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
@@ -138,21 +145,66 @@ public class EnemyAI : MonoBehaviour
 
             if (projectileScript != null)
             {
-                projectileScript.SetShooter(transform); 
+                projectileScript.SetShooter(transform);
             }
         }
 
-        // restore enemy movement after attack
-        agent.isStopped = false; 
+        if (agent != null && agent.isOnNavMesh && !isDead)
+        {
+            agent.isStopped = false;
+        }
+        else
+        {
+            Debug.LogWarning($"{gameObject.name}: Attempted to resume movement, but agent was inactive or not on the NavMesh.");
+        }
     }
 
     public static Vector3 RandomNavSphere(Vector3 origin, float dist, int layermask)
     {
         Vector3 randDir = Random.insideUnitSphere * dist;
         randDir += origin;
-        NavMeshHit navHit;
-        NavMesh.SamplePosition(randDir, out navHit, dist, layermask);
+        NavMesh.SamplePosition(randDir, out NavMeshHit navHit, dist, layermask);
         return navHit.position;
+    }
+
+    public void DamageHealth(float damage)
+    {
+        if (isDead) return;
+
+        enemyHealth -= damage;
+        if (enemyHealth <= 0)
+        {
+            EnemyDeath();
+        }
+    }
+
+    private void EnemyDeath()
+    {
+        if (isDead) return;
+
+        UIController.Instance.UpdateScore(100);
+        isDead = true;
+        animator.SetTrigger("Die");
+
+        if (agent != null)
+        {
+            agent.isStopped = true;
+            if (!agent.isOnNavMesh)
+            {
+                Debug.LogWarning($"{gameObject.name} died but was not on the NavMesh!");
+            }
+            agent.enabled = false; 
+        }
+
+        OnDeath?.Invoke();
+        StartCoroutine(DespawnEnemy());
+    }
+
+    private IEnumerator DespawnEnemy()
+    {
+        yield return new WaitForSeconds(2f);
+        Instantiate(healthPickup, transform.position, Quaternion.identity);
+        Destroy(gameObject);
     }
 
     public void PlayFootstepSFX()
