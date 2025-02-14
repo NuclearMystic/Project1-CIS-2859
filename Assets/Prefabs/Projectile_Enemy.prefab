@@ -123,6 +123,7 @@ MonoBehaviour:
   speed: 50
   lifetime: 10
   damage: 1
+  homingStrength: 0.075
 --- !u!54 &-3468033830029932000
 Rigidbody:
   m_ObjectHideFlags: 0

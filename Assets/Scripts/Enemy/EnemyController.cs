@@ -97,10 +97,24 @@ public class EnemyController : MonoBehaviour
     private void ChasePlayer()
     {
         if (!player) return;
-        agent.isStopped = false; 
-        agent.SetDestination(player.position);
-
+        agent.isStopped = false;
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+        // only begin to move if player is not within shootying range
+        if (distanceToPlayer > shootRange)
+        {
+            agent.SetDestination(player.position);
+        }
+        else
+        {
+            agent.SetDestination(transform.position);
+
+            Vector3 direction = (player.position - transform.position).normalized;
+            direction.y = 0; 
+            Quaternion lookRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+        }
+
         if (distanceToPlayer <= shootRange && shootTimer <= 0f)
         {
             Attack();
@@ -130,6 +144,13 @@ public class EnemyController : MonoBehaviour
     private void Attack()
     {
         agent.isStopped = true;
+
+        // enemy needs to rotate to face player when not moving and trying to shoot
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0; 
+        Quaternion lookRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
+
         animator.SetTrigger("Shoot");
         shootTimer = shootCooldown;
     }
@@ -155,7 +176,7 @@ public class EnemyController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"{gameObject.name}: Attempted to resume movement, but agent was inactive or not on the NavMesh.");
+            Debug.LogWarning($"{gameObject.name}: agent is inactive or not on the NavMesh.");
         }
     }
 

@@ -10,12 +10,6 @@ public abstract class ArenaShape : MonoBehaviour
 
     public float shrinkDuration = 60;
 
-    public void Start()
-    {
-        Debug.Log("start method called");
-        StartCoroutine(ShrinkOverTime());
-    }
-
     public IEnumerator ShrinkOverTime()
     {
         Vector3 originalScale = transform.localScale;

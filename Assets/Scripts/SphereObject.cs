@@ -1,4 +1,3 @@
-// Sphere Object
 public class SphereObject : ArenaShape
 {
     private void Start()

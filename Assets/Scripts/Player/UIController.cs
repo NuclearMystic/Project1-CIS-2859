@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class UIController : MonoBehaviour
 {
@@ -17,9 +18,12 @@ public class UIController : MonoBehaviour
     public AudioSource CountDownSFX;
     public AudioSource CountDownGoSFX;
 
+    public GameObject roundWonImage;
+
     public Slider healthSlider;
     public TMP_Text scoreText;
     public TMP_Text roundText;
+    public TMP_Text pointsScored;
 
     private float totalScore = 0f;
 
@@ -95,6 +99,29 @@ public class UIController : MonoBehaviour
     public void UpdateScore(float score)
     {
         totalScore += score;
+        ShowPointsScored(score);
         scoreText.text = totalScore.ToString();
+    }
+
+    public void ShowPointsScored(float points)
+    {
+        pointsScored.text = "+" + points.ToString();
+        StartCoroutine(ShowPointCountdown());
+    }
+
+    IEnumerator ShowPointCountdown()
+    {
+        yield return new WaitForSeconds(1);
+        pointsScored.text = "";
+    }
+
+    public void ShowRoundWon()
+    {
+        roundWonImage.SetActive(true);
+    }
+
+    public void HideRoundWon()
+    {
+        roundWonImage.SetActive(false);
     }
 }

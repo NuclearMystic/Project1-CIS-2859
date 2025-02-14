@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class RoundController : MonoBehaviour
 {
@@ -18,6 +20,9 @@ public class RoundController : MonoBehaviour
     [SerializeField] private CameraLook cameraLookScript;
     [SerializeField] private PlayerMovement playerMovementScript;
 
+    [Header("Game Over UI")]
+    [SerializeField] private GameObject gameOverScreen; 
+
     public float countdownTime = 3f;
     public int enemiesPerSide = 1;
 
@@ -26,6 +31,8 @@ public class RoundController : MonoBehaviour
     private int activeEnemies = 0;
     private bool roundInProgress = false;
     private Transform arenaCenter;
+
+    public AudioSource gameOverSFX;
 
     private void Awake()
     {
@@ -42,7 +49,6 @@ public class RoundController : MonoBehaviour
 
     private void Start()
     {
-        // Find the arena center using the "Center" tag
         GameObject centerObj = GameObject.FindGameObjectWithTag("Center");
         if (centerObj != null)
         {
@@ -58,10 +64,10 @@ public class RoundController : MonoBehaviour
 
     private IEnumerator StartRound()
     {
-        if (roundInProgress) yield break; // Prevent multiple rounds from starting
+        if (roundInProgress) yield break;
         roundInProgress = true;
-        enemiesPerSide = CurrentRound; // Increase enemy count per round
-        activeEnemies = enemiesPerSide * 2; // Total number of enemies
+        enemiesPerSide = CurrentRound;
+        activeEnemies = enemiesPerSide * 2;
 
         if (UIController.Instance != null)
         {
@@ -69,38 +75,37 @@ public class RoundController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("UIController instance not found! Make sure it's in the correct scene.");
+            Debug.LogWarning("UIController instance not found!");
         }
+
         Debug.Log($"Starting Round {CurrentRound} - Total Enemies: {activeEnemies}");
 
-        // Move player to the center and disable controls
         if (player != null && arenaCenter != null)
         {
             player.position = arenaCenter.position;
             DisablePlayerControls();
         }
 
-        // Start Countdown animation
         countdownAnimator.SetTrigger("StartCountdown");
         yield return new WaitForSeconds(countdownTime);
 
-        Debug.Log("Go!");
+        if (UIController.Instance != null)
+        {
+            UIController.Instance.HideRoundWon();
+        }
 
-        // Re-enable player controls after countdown
+        Debug.Log("Go!");
         EnablePlayerControls();
 
-        // Open doors
         gateOneAnimator.SetTrigger("Open");
         gateTwoAnimator.SetTrigger("Open");
-        yield return new WaitForSeconds(1f); // Wait before spawning
+        yield return new WaitForSeconds(1f);
 
-        // Spawn Enemies
         SpawnEnemies(spawnPointOne);
         SpawnEnemies(spawnPointTwo);
 
-        yield return new WaitForSeconds(1f); // Ensure all enemies spawn before closing doors
+        yield return new WaitForSeconds(1f);
 
-        // Close doors
         gateOneAnimator.SetTrigger("Close");
         gateTwoAnimator.SetTrigger("Close");
     }
@@ -152,6 +157,8 @@ public class RoundController : MonoBehaviour
     public void WinRound()
     {
         UIController.Instance.UpdateScore(1000);
+        UIController.Instance.ShowRoundWon();
+        FindObjectOfType<PlayerHealth>().RestoreHealth(10);
         Debug.Log($"Round {CurrentRound} Won!");
         roundInProgress = false;
         CurrentRound++;
@@ -160,10 +167,24 @@ public class RoundController : MonoBehaviour
 
     public void LoseRound()
     {
-        Debug.Log("Round Lost! Restarting...");
         roundInProgress = false;
-        StartCoroutine(StartRound());
+
+        if (gameOverScreen != null)
+        {
+            gameOverSFX.Play();
+            gameOverScreen.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Game Over screen is not assigned in the Inspector!");
+        }
+
+        StartCoroutine(WaitAndLoadLeaderboard());
     }
 
-
+    private IEnumerator WaitAndLoadLeaderboard()
+    {
+        yield return new WaitForSecondsRealtime(5f); 
+        SceneManager.LoadScene("Leaderboard"); 
+    }
 }

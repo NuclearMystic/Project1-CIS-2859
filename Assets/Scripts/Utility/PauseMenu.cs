@@ -6,21 +6,25 @@ public class PauseMenu : MonoBehaviour
 
     private void OnEnable()
     {
-        foreach (var source in audioSources)
+        if (audioSources != null)
         {
-            source.Pause();
+            foreach (var source in audioSources)
+            {
+                source.Pause();
+            }
+            Time.timeScale = 0f;
         }
-        Time.timeScale = 0f; 
-        Debug.Log("Game Paused");
     }
 
     private void OnDisable()
     {
-        foreach (var source in audioSources)
+        if (audioSources != null)
         {
-            source.UnPause();
+            foreach (var source in audioSources)
+            {
+                source.UnPause();
+            }
+            Time.timeScale = 1f;
         }
-        Time.timeScale = 1f;
-        Debug.Log("Game Resumed");
     }
 }

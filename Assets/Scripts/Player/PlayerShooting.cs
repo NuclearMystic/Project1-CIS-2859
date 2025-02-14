@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerShooting : MonoBehaviour
@@ -16,13 +17,16 @@ public class PlayerShooting : MonoBehaviour
     public AudioSource gunshotAudioSource; 
 
     [Header("Physics")]
-    public float knockbackForce = 100f; 
+    public float knockbackForce = 100f;
+
+    bool canShoot = true;
 
     void Update()
     {
-        if (Input.GetButtonDown("Fire1")) 
+        if (Input.GetButton("Fire1") && canShoot == true) 
         {
             Shoot();
+            canShoot = false;
         }
     }
 
@@ -43,6 +47,14 @@ public class PlayerShooting : MonoBehaviour
             CreateBulletHole(hit);
             CreateImpactFlash(hit);
         }
+
+        StartCoroutine(ShotCooldown());
+    }
+
+    IEnumerator ShotCooldown()
+    {
+        yield return new WaitForSeconds(0.3f);
+        canShoot = true;
     }
 
     private void PlayMuzzleFlash()
@@ -73,7 +85,7 @@ public class PlayerShooting : MonoBehaviour
         ArenaShape shape = hit.collider.GetComponent<ArenaShape>();
         if (shape != null)
         {
-            shape.ApplyDamage((int)damage); // Apply damage to the shape
+            shape.ApplyDamage((int)damage); 
         }
     }
 
@@ -91,10 +103,14 @@ public class PlayerShooting : MonoBehaviour
     {
         if (bulletHolePrefab)
         {
-            Vector3 spawnPosition = hit.point + hit.normal * 0.01f;
-            Quaternion spawnRotation = Quaternion.LookRotation(hit.normal);
-            GameObject bulletHole = Instantiate(bulletHolePrefab, spawnPosition, spawnRotation);
-            bulletHole.transform.SetParent(hit.collider.transform);
+            if (!hit.collider.gameObject.CompareTag("Enemy"))
+            {
+                Vector3 spawnPosition = hit.point + hit.normal * 0.01f;
+                Quaternion spawnRotation = Quaternion.LookRotation(hit.normal);
+                GameObject bulletHole = Instantiate(bulletHolePrefab, spawnPosition, spawnRotation);
+                bulletHole.transform.SetParent(hit.collider.transform);
+            }
+
         }
     }
 
@@ -103,7 +119,7 @@ public class PlayerShooting : MonoBehaviour
         if (impactEffectPrefab)
         {
             GameObject impactFlash = Instantiate(impactEffectPrefab, hit.point, Quaternion.LookRotation(hit.normal));
-            Destroy(impactFlash, 0.1f); // Auto-destroy after a short time
+            Destroy(impactFlash, 0.1f);
         }
     }
 }
