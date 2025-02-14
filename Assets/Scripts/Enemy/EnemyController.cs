@@ -223,7 +223,7 @@ public class EnemyController : MonoBehaviour
 
     private IEnumerator DespawnEnemy()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         Instantiate(healthPickup, transform.position, Quaternion.identity);
         Destroy(gameObject);
     }

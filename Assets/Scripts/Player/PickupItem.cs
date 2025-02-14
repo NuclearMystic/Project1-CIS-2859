@@ -35,7 +35,7 @@ public class PickupItem : MonoBehaviour
     private void HandleFloating()
     {
         float newY = startPosition.y + Mathf.Sin(Time.time * floatSpeed) * floatHeight;
-        transform.position = new Vector3(transform.position.x, newY, transform.position.z);
+        transform.position = new Vector3(transform.position.x, newY + 1, transform.position.z);
         transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
     }
 
